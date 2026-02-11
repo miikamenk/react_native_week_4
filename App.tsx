@@ -1,52 +1,15 @@
 import { StatusBar } from "expo-status-bar";
 import { StyleSheet, View, FlatList } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useEffect, useState } from "react";
 import TaskItem from "./components/TaskItem";
 import AddTask from "./components/AddTask";
-
-type Todo = {
-  id: string;
-  text: string;
-  done: boolean;
-};
-
-const STORAGE_KEY = "todos";
+import { useTodos } from "./hooks/useTodos";
 
 export default function App() {
-  const [todos, setTodos] = useState<Todo[]>([]);
-
-  useEffect(() => {
-    loadTodos();
-  }, []);
-
-  useEffect(() => {
-    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(todos));
-  }, [todos]);
-
-  const loadTodos = async () => {
-    const data = await AsyncStorage.getItem(STORAGE_KEY);
-    if (data) setTodos(JSON.parse(data));
-  };
-
-  const addTask = (text: string) => {
-    setTodos((prev) => [
-      ...prev,
-      { id: Date.now().toString(), text, done: false },
-    ]);
-  };
-
-  const toggleTodo = (id: string) => {
-    setTodos((prev) =>
-      prev.map((todo) =>
-        todo.id === id ? { ...todo, done: !todo.done } : todo,
-      ),
-    );
-  };
+  const { todos, addTodo, toggleTodo, removeTodo } = useTodos();
 
   return (
     <View style={styles.container}>
-      <AddTask onAdd={addTask} />
+      <AddTask onAdd={addTodo} />
 
       <FlatList
         data={todos}
@@ -56,6 +19,7 @@ export default function App() {
             text={item.text}
             done={item.done}
             onPress={() => toggleTodo(item.id)}
+            onRemove={() => removeTodo(item.id)}
           />
         )}
       />
